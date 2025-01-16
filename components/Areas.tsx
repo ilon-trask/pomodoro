@@ -18,11 +18,11 @@ function Areas({}: Props) {
   const [input, setInput] = useState("");
 
   return (
-    <Card className="flex flex-col min-h-80 min-w-80">
+    <Card className="flex flex-col h-80 w-80">
       <CardHeader>
         <CardTitle>Areas</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2 flex-grow">
+      <CardContent className="flex flex-col gap-2 flex-grow overflow-y-auto">
         {areas.map((el, i) => (
           <Button key={el + i} variant={"secondary"} className="justify-start">
             {el}
@@ -31,8 +31,11 @@ function Areas({}: Props) {
       </CardContent>
       <CardFooter>
         <form
-          className="flex gap-2"
-          action={() => setAreas((prev) => [...prev, input])}
+          className="flex gap-2 flex-grow"
+          action={() => {
+            setInput("");
+            setAreas((prev) => [...prev, input]);
+          }}
         >
           <Input value={input} onChange={(e) => setInput(e.target.value)} />
           <Button variant={"secondary"} type="submit">

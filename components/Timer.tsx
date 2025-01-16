@@ -9,13 +9,19 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+import { createPomodoro } from "@/lib/pomodoro/create";
 
-type Props = {};
-
-function useTimer() {
+const workTime = 50;
+function usePomodoroTimer() {
   const minsToSecs = (mins: number) => mins * 60;
 
-  const [intervals, setIntervals] = useState([50, 10]);
+  const [intervals, setIntervals] = useState([workTime, 10]);
   const [timer, setTimer] = useState(minsToSecs(intervals[0]));
   const [isActive, setIsActive] = useState(false);
   const [isWork, setIsWork] = useState(true);
@@ -40,28 +46,16 @@ function useTimer() {
   return { timer, setTimer, isWork, isActive, setIsActive };
 }
 
-function Timer({}: Props) {
-  const { timer, setTimer, isWork, isActive, setIsActive } = useTimer();
+type Props = {
+  listPomodoros: { id: string; createdAt: string; workTime: number }[];
+};
 
-  const [pomodoros, setPomodoros] = useState<
-    {
-      workTime: number;
-      actualWorkTime: number;
-      //   area: string;
-    }[]
-  >([
-    // { workTime: 50, actualWorkTime: 45 },
-    // { workTime: 50, actualWorkTime: 45 },
-  ]);
+function Timer({ listPomodoros }: Props) {
+  const { timer, setTimer, isWork, isActive, setIsActive } = usePomodoroTimer();
 
   useEffect(() => {
     if (timer != 0) return;
-    const workTime = 50;
-    if (isWork)
-      setPomodoros((prev) => [
-        ...prev,
-        { workTime, actualWorkTime: workTime - (timer % 60) / 60 },
-      ]);
+    if (isWork) createPomodoro(workTime);
   }, [timer]);
 
   return (
@@ -71,12 +65,16 @@ function Timer({}: Props) {
       </CardHeader>
 
       <CardContent className="flex-grow flex flex-col justify-center gap-8">
-        <div className="px-10">
-          {pomodoros.map((el, i) => (
-            <React.Fragment key={i}>
-              {i != 0 ? ", " : null}
-              <span>{el.actualWorkTime}</span>
-            </React.Fragment>
+        <div className="px-10 flex gap-1">
+          {listPomodoros.map((el) => (
+            <TooltipProvider key={el.id} delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="w-4 h-4 bg-black rounded-full" />
+                </TooltipTrigger>
+                <TooltipContent>{el.workTime}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </div>
         <H1 className="text-center">
@@ -84,7 +82,11 @@ function Timer({}: Props) {
         </H1>
       </CardContent>
       <CardFooter className="flex justify-center gap-4">
-        <Button variant={"outline"} onClick={() => setTimer(0)}>
+        <Button
+          variant={"outline"}
+          onClick={() => setTimer(0)}
+          disabled={!isActive}
+        >
           Skip
         </Button>
         <Button
